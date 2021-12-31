@@ -21,17 +21,22 @@ class MainActivity : AppCompatActivity() {
         coroutineScope.launch {
 
             val originalDeferred = coroutineScope.async(Dispatchers.IO) {
-                getOriginalBitmap()
+                getOriginalBitmap(IMAGE_URL)
             }
             val originalBitmap = originalDeferred.await()
-
             loadImage(originalBitmap)
-            loadImage(Filter.apply(originalBitmap))
+
+            val filterDeferred = coroutineScope.async(Dispatchers.Default) {
+                applyFilter(originalBitmap)
+            }
+            val filteredImage = filterDeferred.await()
+            loadImage(filteredImage)
         }
     }
 
-    private fun getOriginalBitmap()  =
-        URL(IMAGE_URL).openStream()
+    // Load bitmap from newotk
+    private fun getOriginalBitmap(url: String)  =
+        URL(url).openStream()
             .use {
                 BitmapFactory.decodeStream(it)
             }
@@ -41,4 +46,6 @@ class MainActivity : AppCompatActivity() {
         imageView.setImageBitmap(bmp)
         imageView.visibility = View.VISIBLE
     }
+
+    private fun applyFilter(originalBitmap: Bitmap) = Filter.apply(originalBitmap)
 }
